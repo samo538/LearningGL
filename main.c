@@ -109,6 +109,10 @@ int main(){
     glDeleteShader(VS); // Deletion of shaders that will no longer be used
     glDeleteShader(FS);
 
+    int noAttributes;
+    glGetIntegerv(GL_MAX_VERTEX_ATTRIBS, &noAttributes);
+    printf("max Attribs in vertex shader: %d\n", noAttributes);
+
     // Main render loop
     while(!glfwWindowShouldClose(window)) {
         // input
