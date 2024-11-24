@@ -18,11 +18,17 @@ const char *vs = "#version 330 core\n"
     "{\n"
     "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
     "}\0";
-const char *fs = "#version 330 core\n"
+const char *fs1 = "#version 330 core\n"
     "out vec4 FragColor;\n"
     "void main()\n"
     "{\n"
     "FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+    "}\0";
+const char *fs2 = "#version 330 core\n"
+    "out vec4 FragColor;\n"
+    "void main()\n"
+    "{\n"
+    "FragColor = vec4(1.0f, 1.0f, 0.0f, 1.0f);\n"
     "}\0";
 
 void processInput(GLFWwindow *window){
@@ -101,20 +107,31 @@ int main(){
     glShaderSource(VS, 1, &vs, NULL); // Initializing vertex shader object
     glCompileShader(VS); // Run-time compilation of the vertex shader
 
-    unsigned int FS; // Fragment shader
-    FS = glCreateShader(GL_FRAGMENT_SHADER); // Creation of fragment shader object
-    glShaderSource(FS, 1, &fs, NULL); // Initializing fragment shader object
-    glCompileShader(FS); // Run-time compilation of the fragment shader
+    unsigned int FS1; // Fragment shader
+    FS1 = glCreateShader(GL_FRAGMENT_SHADER); // Creation of fragment shader object
+    glShaderSource(FS1, 1, &fs1, NULL); // Initializing fragment shader object
+    glCompileShader(FS1); // Run-time compilation of the fragment shader
 
-    unsigned int SP; // Final shader program that integrates other compiled shaders
-    SP = glCreateProgram(); // Creation of the shader program
-    glAttachShader(SP, VS); // Attaching shader programs
-    glAttachShader(SP, FS);
-    glLinkProgram(SP); // Linking attached shaders
+    unsigned int FS2; // Fragment shader
+    FS2 = glCreateShader(GL_FRAGMENT_SHADER); // Creation of fragment shader object
+    glShaderSource(FS2, 1, &fs2, NULL); // Initializing fragment shader object
+    glCompileShader(FS2); // Run-time compilation of the fragment shader
 
+    unsigned int SP1; // Final shader program that integrates other compiled shaders
+    SP1 = glCreateProgram(); // Creation of the shader program
+    glAttachShader(SP1, VS); // Attaching shader programs
+    glAttachShader(SP1, FS1);
+    glLinkProgram(SP1); // Linking attached shaders
+
+    unsigned int SP2; // Final shader program that integrates other compiled shaders
+    SP2 = glCreateProgram(); // Creation of the shader program
+    glAttachShader(SP2, VS); // Attaching shader programs
+    glAttachShader(SP2, FS2);
+    glLinkProgram(SP2); // Linking attached shaders
 
     glDeleteShader(VS); // Deletion of shaders that will no longer be used
-    glDeleteShader(FS);
+    glDeleteShader(FS1);
+    glDeleteShader(FS2);
 
     // Main render loop
     while(!glfwWindowShouldClose(window)) {
@@ -124,12 +141,13 @@ int main(){
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        glUseProgram(SP); // Using the shader program (every rendering call will use these shaders)
+        glUseProgram(SP1); // Using the shader program (every rendering call will use these shaders)
 
         // Drawing the first trinagle
         glBindVertexArray(VAO[0]); // We do not need to bind it every time, but its a good practice
         glDrawArrays(GL_TRIANGLES, 0, 3);
 
+        glUseProgram(SP2); // Using the shader program (every rendering call will use these shaders)
         // Drawing the second trinagle
         glBindVertexArray(VAO[1]); // We do not need to bind it every time, but its a good practice
         glDrawArrays(GL_TRIANGLES, 0, 3);
