@@ -4,6 +4,7 @@
 */
 #include <stdbool.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 #include "include/glad/glad.h"
 #include <GLFW/glfw3.h>
@@ -57,35 +58,41 @@ int main(){
     glViewport(0,0,800,600);
 
     // Initializing shaders and data
-    float verticies[] = {
+    float verticies1[] = {
          0.5f,  0.5f, 0.0f, // top right
+         0.5f, -0.5f, 0.0f, // bottom right
+        -0.5f,  0.5f, 0.0f, // top left
+    };
+    float verticies2[] = {
          0.5f, -0.5f, 0.0f, // bottom right
         -0.5f,  0.5f, 0.0f, // top left
         -0.5f, -0.5f, 0.0f, // bottom left
     };
-    unsigned int indicies[] = {
-        0, 1, 2, // first tringle
-        1, 3, 2, // second tringle
-    };
-    unsigned int VAO; // Vertex array object
-    glGenVertexArrays(1, &VAO); 
-    glBindVertexArray(VAO);
+    unsigned int *VAO = malloc(sizeof(unsigned int)); // Vertex array object
+    unsigned int *VBO = malloc(sizeof(unsigned int)); // Vertex buffer object
+    glGenBuffers(2, VBO); // Generate the buffer object and store it in the VBO variable
+    glGenVertexArrays(2, VAO); 
 
-    unsigned int VBO; // Vertex buffer object
-    glGenBuffers(1, &VBO); // Generate the buffer object and store it in the VBO variable
-    glBindBuffer(GL_ARRAY_BUFFER, VBO); // Select the VBO buffer to be GL_ARRAY_BUFFER type
-    glBufferData(GL_ARRAY_BUFFER, sizeof(verticies), verticies, GL_STATIC_DRAW); // Send data to the GPU
+    glBindVertexArray(VAO[0]);
+    // The first VBO stores the first triangle
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[0]); // Select the VBO buffer to be GL_ARRAY_BUFFER type
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticies1), verticies1, GL_STATIC_DRAW); // Send data to the GPU
 
-    unsigned int EBO; // Element buffer object
-    glGenBuffers(1, &EBO); // Generate the buffer object and store it in the EBO variable
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO); // Select the EBO buffer to be GL_ELEMENT_ARRAY_BUFFER type
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(indicies), indicies, GL_STATIC_DRAW); // Send data to the GPU
+    // Setting the attributes pointers to the VBO
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // Setting the attribute pointer
+    glEnableVertexAttribArray(0); // Enabling the attribute pointer
 
+
+    glBindVertexArray(VAO[1]);
+    // The second VBO stores the second trinagle
+    glBindBuffer(GL_ARRAY_BUFFER, VBO[1]); // Select the VBO buffer to be GL_ARRAY_BUFFER type
+    glBufferData(GL_ARRAY_BUFFER, sizeof(verticies2), verticies2, GL_STATIC_DRAW); // Send data to the GPU
+
+    // Setting the attributes pointers to the VBO
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void*)0); // Setting the attribute pointer
     glEnableVertexAttribArray(0); // Enabling the attribute pointer
 
     // As we are not going to modify VAO, VBO or EBO we can safely unbind them (as not to unwantedly change them)
-    // Warning, the EBO is not changed after this, but it must remain bound
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glBindVertexArray(0);
 
@@ -114,25 +121,23 @@ int main(){
         // input
         processInput(window);
 
-        glUseProgram(SP); // Using the shader program (every rendering call will use these shaders)
-
-        glBindVertexArray(VAO); // We do not need to bind it every time, but its a good practice
-
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
-        //glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        glUseProgram(SP); // Using the shader program (every rendering call will use these shaders)
+
+        // Drawing the first trinagle
+        glBindVertexArray(VAO[0]); // We do not need to bind it every time, but its a good practice
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+
+        // Drawing the second trinagle
+        glBindVertexArray(VAO[1]); // We do not need to bind it every time, but its a good practice
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // Swapping buffers (double buffer trick)
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
-
-    // Freeing arrays
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
-    glDeleteBuffers(1, &EBO);
-    glDeleteProgram(SP);
 
     // Terminating glfw
     glfwTerminate();
